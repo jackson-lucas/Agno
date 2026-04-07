@@ -849,6 +849,15 @@ class AgentOS:
 
         fastapi_app.add_middleware(TrailingSlashMiddleware)
 
+        # Serve local UI
+        from pathlib import Path
+
+        from fastapi.staticfiles import StaticFiles
+
+        ui_path = Path(__file__).parent.joinpath("ui")
+        if ui_path.exists():
+            fastapi_app.mount("/", StaticFiles(directory=str(ui_path), html=True), name="ui")
+
         return fastapi_app
 
     def _add_jwt_middleware(self, fastapi_app: FastAPI) -> None:
@@ -1409,35 +1418,33 @@ class AgentOS:
         if env_port is not None:
             port = int(env_port)
 
-        if getenv("AGNO_API_RUNTIME", "").lower() == "stg":
-            public_endpoint = "https://os-stg.agno.com/"
-        else:
-            public_endpoint = "https://os.agno.com/"
-
         # Create a terminal panel to announce OS initialization and provide useful info
         from rich.align import Align
         from rich.console import Console, Group
 
+        public_endpoint = f"http://{host}:{port}"
+        
         panel_group = [
+            Align.center(f"\n🚀 [bold]AgentOS Local Dashboard[/bold] is live at:"),
             Align.center(f"[bold cyan]{public_endpoint}[/bold cyan]"),
-            Align.center(f"\n\n[bold dark_orange]OS running on:[/bold dark_orange] http://{host}:{port}"),
+            Align.center(f"\n[dim]Experience your agents, teams and workflows in real-time.[/dim]"),
         ]
         if self.authorization:
             panel_group.append(
-                Align.center("\n\n[bold chartreuse3]:lock: JWT Authorization Enabled[/bold chartreuse3]")
+                Align.center("\n[bold chartreuse3]🔒 JWT Authorization Enabled[/bold chartreuse3]")
             )
         elif bool(self.settings.os_security_key):
-            panel_group.append(Align.center("\n\n[bold chartreuse3]:lock: Security Key Enabled[/bold chartreuse3]"))
+            panel_group.append(Align.center("\n[bold chartreuse3]🔒 Security Key Enabled[/bold chartreuse3]"))
 
         console = Console()
         console.print(
             Panel(
                 Group(*panel_group),
-                title="AgentOS",
+                title="[bold dark_orange] Agno AgentOS [/bold dark_orange]",
                 expand=False,
                 border_style="dark_orange",
-                box=box.DOUBLE_EDGE,
-                padding=(2, 2),
+                box=box.ROUNDED,
+                padding=(1, 4),
             )
         )
 

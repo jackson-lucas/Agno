@@ -10,7 +10,7 @@ def get_home_router(os: "AgentOS") -> APIRouter:
     router = APIRouter(tags=["Home"])
 
     @router.get(
-        "/",
+        "/api",
         operation_id="get_api_info",
         summary="API Information",
         description=(

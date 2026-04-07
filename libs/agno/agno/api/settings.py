@@ -32,17 +32,26 @@ class AgnoAPISettings(BaseSettings):
 
     @field_validator("api_url", mode="before")
     def update_api_url(cls, v, info: ValidationInfo):
-        api_runtime = info.data["api_runtime"]
-        if api_runtime == "dev":
-            from os import getenv
+        # If v is already set (e.g. via AGNO_API_URL environment variable), use it
+        from os import getenv
 
+        env_api_url = getenv("AGNO_API_URL")
+        if env_api_url:
+            return env_api_url
+
+        # Check for local-only mode
+        if getenv("AGNO_LOCAL_ONLY") == "true":
+            return "http://localhost:7777"
+
+        api_runtime = info.data.get("api_runtime")
+        if api_runtime == "dev":
             if getenv("AGNO_RUNTIME") == "docker":
                 return "http://host.docker.internal:7070"
             return "http://localhost:7070"
         elif api_runtime == "stg":
             return "https://api-stg.agno.com"
         else:
-            return "https://os-api.agno.com"
+            return v or "https://os-api.agno.com"
 
     def gate_alpha_feature(self):
         if not self.alpha_features:

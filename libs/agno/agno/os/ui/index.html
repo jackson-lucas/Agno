@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agno AgentOS</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-mode">
+    <div id="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                     <span class="logo-text">Agno <span class="accent">AgentOS</span></span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h3>Agents</h3>
+                    <ul id="agent-list" class="resource-list">
+                        <!-- Agents will be populated here -->
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h3>Teams</h3>
+                    <ul id="team-list" class="resource-list">
+                        <!-- Teams will be populated here -->
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <h3>Workflows</h3>
+                    <ul id="workflow-list" class="resource-list">
+                        <!-- Workflows will be populated here -->
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span id="connection-dot" class="dot offline"></span>
+                    <span id="status-text">Disconnected</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="chat-header">
+                <div class="active-resource-info">
+                    <h2 id="active-name">Select an Agent</h2>
+                    <p id="active-description">Choose a resource from the sidebar to start</p>
+                </div>
+                <div class="header-actions">
+                    <button id="clear-chat" class="icon-btn" title="Clear Chat">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 6L5 20M5 6l14 14"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <div id="chat-container" class="chat-container">
+                <div class="welcome-screen">
+                    <div class="welcome-box">
+                        <h1>Welcome to AgentOS</h1>
+                        <p>Interact with your local agents, teams, and workflows in real-time.</p>
+                        <div class="quick-stats">
+                            <div class="stat"><span id="stat-agents">-</span> Agents</div>
+                            <div class="stat"><span id="stat-teams">-</span> Teams</div>
+                            <div class="stat"><span id="stat-workflows">-</span> Workflows</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="chat-input-area">
+                <div class="input-wrapper">
+                    <textarea id="chat-input" placeholder="Message your agent..." rows="1" disabled></textarea>
+                    <button id="send-btn" class="send-btn" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+            </footer>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

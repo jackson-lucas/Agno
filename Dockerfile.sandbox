@@ -1,0 +1,33 @@
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Install required system packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy local agno library source
+COPY libs/agno /app/libs/agno
+
+# Install dependencies including the local agno
+RUN pip install --no-cache-dir \
+    -e /app/libs/agno \
+    pydantic \
+    pydantic-settings \
+    python-dotenv \
+    google-genai \
+    openai \
+    chromadb \
+    fastapi
+
+# The sandbox_entrypoint.py will be mounted at runtime or copied if we want
+# For simplicity, we assume it'll be mounted to /app/sandbox_entrypoint.py 
+# or we can just copy it in since it's an infrastructure file.
+COPY scripts/sandbox_entrypoint.py /app/sandbox_entrypoint.py
+
+# Set the entrypoint to the runner script
+ENTRYPOINT ["python", "/app/sandbox_entrypoint.py"]

@@ -34,6 +34,9 @@ Agno is the runtime for agentic software. Build agents, teams, and workflows. Ru
 
 ## Quick Start
 
+> [!IMPORTANT]
+> **Docker Daemon Dependency**: If you are using the local Docker Sandbox (Phase 3+), ensure that the Docker daemon is installed and running on your host machine, and that your user has permissions to interact with it.
+
 Build a stateful, tool-using agent and serve it as a production API in ~20 lines.
 
 ```python

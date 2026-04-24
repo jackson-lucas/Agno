@@ -6,6 +6,7 @@ from agno.registry.registry import Registry
 from agno.utils.log import log_info
 
 class JobManifest(BaseModel):
+    task: str = Field(..., description="The original task or prompt requested by the user")
     workflow_id: Optional[str] = Field(None, description="The ID or name of the workflow to run")
     agent_ids: List[str] = Field(default_factory=list, description="The IDs or names of the agents to use")
     tool_ids: List[str] = Field(default_factory=list, description="The IDs or names of the tools to attach")

@@ -22,7 +22,12 @@ RUN pip install --no-cache-dir \
     google-genai \
     openai \
     chromadb \
-    fastapi
+    fastapi \
+    psycopg[binary] \
+    sqlalchemy \
+    opentelemetry-api \
+    opentelemetry-sdk \
+    openinference-instrumentation-agno
 
 # The sandbox_entrypoint.py will be mounted at runtime or copied if we want
 # For simplicity, we assume it'll be mounted to /app/sandbox_entrypoint.py 

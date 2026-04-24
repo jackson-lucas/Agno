@@ -86,6 +86,18 @@ def main():
                 print(f"Active Guardrail: {g.name}")
                 break
     
+    # 4. Configure Observability
+    print("Configuring Observability Bridge (PostgreSQL)...")
+    try:
+        from agno.db.postgres import PostgresDb
+        from agno.tracing import setup_tracing
+        db = PostgresDb(db_url="postgresql+psycopg://ai:ai@host.docker.internal:5532/ai")
+        agent.db = db
+        setup_tracing(db=db)
+        agent.tracing = True
+    except Exception as obs_err:
+        print(f"Warning: Could not connect to Observability DB: {obs_err}")
+
     print("\nExecuting Task...")
     
     # If the user has an OPENAI_API_KEY or GEMINI_API_KEY passed in via docker run -e, 

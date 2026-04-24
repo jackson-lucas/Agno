@@ -21,6 +21,16 @@ def main():
         print("Please set the GOOGLE_API_KEY environment variable to run this demo.")
         return
 
+    # Check for Observability DB
+    import socket
+    try:
+        with socket.create_connection(("localhost", 5532), timeout=1):
+            pass
+    except (socket.timeout, ConnectionRefusedError):
+        print("\nWARNING: Observability Database (PostgreSQL) is not reachable on localhost:5532.")
+        print("Please run: ./scripts/run_observability_db.sh")
+        print("Execution will continue, but telemetry/logs will not be captured.\n")
+
     # 1. Load Registry
     registry_path = repo_root / "registry"
     print(f"Loading registry from {registry_path}...")

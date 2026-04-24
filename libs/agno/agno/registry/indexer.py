@@ -20,8 +20,13 @@ class ComponentIndexer:
         # Ensure collection is created
         self.vector_db.create()
 
-    def index_registry(self, registry: Registry):
+    def index_registry(self, registry: Registry, force_reindex: bool = False):
         """Iterates over registry components and indexes them into the vector db."""
+        # Check if already indexed
+        if not force_reindex and self.vector_db.content_hash_exists("registry_index"):
+            log_info(f"Registry '{registry.name}' already indexed in ChromaDB. Skipping...")
+            return
+
         log_info(f"Indexing registry '{registry.name}' into ChromaDB...")
         documents = []
 

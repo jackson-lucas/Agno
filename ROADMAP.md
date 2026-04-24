@@ -27,9 +27,5 @@
 
 ---
 
-## Phase 6: Future Enhancements [PLANNED]
-- [ ] **Embedding Persistence**: Avoid recreating embeddings on every initialization by checking collection state.
-- [ ] **Multi-Agent Teams**: Support generating manifests for collaborative agent teams.
-- [ ] **Custom Tool Provisioning**: Automatically install missing pip packages in the sandbox based on component requirements.
-- [ ] **Trace Visualization**: Add gantt-chart style visualization for span durations.
-- [ ] **Session Replay**: Allow re-running a job manifest with modified parameters from the UI.
+## Phase 6: Embedding Persistence [COMPLETED]
+- [x] **Embedding Persistence**: Avoid recreating embeddings on every initialization by checking collection state.

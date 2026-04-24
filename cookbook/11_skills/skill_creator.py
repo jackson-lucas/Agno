@@ -59,17 +59,17 @@ research_step = Step(
 # ---------------------------------------------------------------------------
 # Step 1.5: Delay Step — Avoid rate limits on Free Tier
 # ---------------------------------------------------------------------------
-def delay_executor(step_input):
-    import time
-    logger.info("Waiting 65 seconds to avoid Gemini rate limits...")
-    time.sleep(65)
-    return step_input.input # Pass research report through
+# def delay_executor(step_input):
+#     import time
+#     logger.info("Waiting 65 seconds to avoid Gemini rate limits...")
+#     time.sleep(65)
+#     return step_input.input # Pass research report through
 
-delay_step = Step(
-    name="Wait for Quota",
-    executor=delay_executor,
-    description="Wait for 20 seconds to avoid rate limits",
-)
+# delay_step = Step(
+#     name="Wait for Quota",
+#     executor=delay_executor,
+#     description="Wait for 20 seconds to avoid rate limits",
+# )
 
 # ---------------------------------------------------------------------------
 # Step 2: Developer Agent — Generates the skill files
@@ -114,7 +114,7 @@ skill_creator = Workflow(
     description="Automated pipeline to research and generate high-quality Agno Skills",
     steps=[
         research_step,
-        delay_step,
+        #delay_step,
         developer_step,
     ],
 )

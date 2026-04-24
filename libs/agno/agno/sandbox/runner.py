@@ -35,7 +35,7 @@ class DockerRunner:
         except FileNotFoundError:
             raise RuntimeError("Docker is not installed or not running on this host.")
 
-    def run(self, manifest: JobManifest) -> str:
+    def run(self, manifest: JobManifest, log_callback: Optional[callable] = None) -> str:
         """
         Executes the manifest.
         Returns the path to the output directory.
@@ -46,7 +46,10 @@ class DockerRunner:
         with open(manifest_path, 'w') as f:
             f.write(manifest.model_dump_json(indent=2))
             
-        log_info("Starting Docker sandbox execution...")
+        log_msg = "Starting Docker sandbox execution..."
+        log_info(log_msg)
+        if log_callback:
+            log_callback(log_msg)
         
         # Pass the API keys from the host environment to the container
         env_args = []
@@ -70,14 +73,31 @@ class DockerRunner:
         ]
         
         try:
-            result = subprocess.run(
+            # Use Popen to stream logs
+            process = subprocess.Popen(
                 docker_cmd,
                 cwd=str(self.repo_root),
-                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
                 text=True,
+                bufsize=1,
+                universal_newlines=True,
             )
-            log_info(f"Execution completed. Outputs saved to {self.outputs_dir}")
+            
+            if process.stdout:
+                for line in process.stdout:
+                    clean_line = line.strip()
+                    if clean_line:
+                        print(clean_line) # Print to host console
+                        if log_callback:
+                            log_callback(clean_line)
+            
+            process.wait()
+            if process.returncode == 0:
+                log_info(f"Execution completed. Outputs saved to {self.outputs_dir}")
+            else:
+                log_error(f"Sandbox execution failed with exit code {process.returncode}")
             return str(self.outputs_dir)
-        except subprocess.CalledProcessError as e:
-            log_error(f"Sandbox execution failed with exit code {e.returncode}")
+        except Exception as e:
+            log_error(f"Error during sandbox execution: {e}")
             return str(self.outputs_dir)

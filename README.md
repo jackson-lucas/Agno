@@ -12,6 +12,9 @@
   Build, run, and manage agentic software at scale.
 </p>
 
+> [!NOTE]
+> **Orchestration Fork**: This version includes a **Semantic Orchestration Layer**, **Docker Sandboxing**, and **PostgreSQL Observability**. See [README_FORK.md](README_FORK.md) for details.
+
 <div align="center">
   <a href="https://docs.agno.com">Docs</a>
   <span>&nbsp;•&nbsp;</span>

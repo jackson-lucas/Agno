@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agno | Monitoring Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">▲</span>
+                <span class="logo-text">AGNO</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-view="traces">
+                    <i data-lucide="activity"></i>
+                    <span>Traces</span>
+                </a>
+                <a href="#" class="nav-item" data-view="sessions">
+                    <i data-lucide="database"></i>
+                    <span>Sessions</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="dot online"></span>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <header class="top-bar">
+                <h1>Orchestrator Monitoring</h1>
+                <div class="controls">
+                    <button id="new-job-btn" class="btn-primary">
+                        <i data-lucide="plus"></i>
+                        New Job
+                    </button>
+                </div>
+            </header>
+
+            <div class="view-container" id="dashboard-view">
+                <!-- Pipeline Status -->
+                <section class="dashboard-grid">
+                    <div class="card glass status-card">
+                        <h3>Pipeline Status</h3>
+                        <div class="pipeline-flow">
+                            <div class="step" id="step-plan">
+                                <div class="step-icon"><i data-lucide="brain"></i></div>
+                                <span>Planning</span>
+                            </div>
+                            <div class="connector"></div>
+                            <div class="step" id="step-build">
+                                <div class="step-icon"><i data-lucide="package"></i></div>
+                                <span>Building</span>
+                            </div>
+                            <div class="connector"></div>
+                            <div class="step" id="step-run">
+                                <div class="step-icon"><i data-lucide="play"></i></div>
+                                <span>Execution</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card glass logs-card">
+                        <h3>Real-time Logs</h3>
+                        <div class="terminal" id="log-terminal">
+                            <div class="line system">Initializing monitor...</div>
+                        </div>
+                    </div>
+
+                    <div class="card glass recent-card">
+                        <h3>Recent Traces</h3>
+                        <div class="table-container">
+                            <table id="recent-traces-table">
+                                <thead>
+                                    <tr>
+                                        <th>Trace ID</th>
+                                        <th>Status</th>
+                                        <th>Duration</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="view-container hidden" id="traces-view">
+                <section class="card glass">
+                    <h3>All Traces</h3>
+                    <div id="traces-list"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="job-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <h2>New Orchestration Job</h2>
+            <textarea id="task-input" placeholder="Describe the task you want the orchestrator to solve..."></textarea>
+            <div class="modal-actions">
+                <button id="cancel-btn" class="btn-secondary">Cancel</button>
+                <button id="run-btn" class="btn-primary">Execute Job</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

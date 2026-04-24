@@ -30,6 +30,7 @@ class Registry:
     name: Optional[str] = None
     description: Optional[str] = None
     id: str = field(default_factory=lambda: str(uuid4()))
+    vector_db: Optional[VectorDb] = None
     tools: List[Any] = field(default_factory=list)
     models: List[Model] = field(default_factory=list)
     dbs: List[BaseDb] = field(default_factory=list)

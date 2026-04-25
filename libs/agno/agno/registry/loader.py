@@ -18,8 +18,12 @@ class RegistryLoader:
     RegistryLoader scans a directory for Agno components and populates a Registry.
     """
 
-    def __init__(self, root_path: Union[str, Path]):
-        self.root_path = Path(root_path).resolve()
+    def __init__(self, root_path: Optional[Union[str, Path]] = None):
+        if root_path is None:
+            # Default to the directory where this file is located
+            self.root_path = Path(__file__).parent.resolve()
+        else:
+            self.root_path = Path(root_path).resolve()
 
     def load_all(self) -> Registry:
         """

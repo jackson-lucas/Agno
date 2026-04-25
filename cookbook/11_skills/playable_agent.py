@@ -14,7 +14,7 @@ except ImportError:
 # Load the generated Skills from the local directory
 # ---------------------------------------------------------------------------
 # Path to the root 'skills' folder
-skills_path = Path.cwd() / "skills"
+skills_path = Path(__file__).parent.parent.parent / "libs" / "agno" / "agno" / "skills"
 
 # Initialize the Skills object with the LocalSkills loader
 agent_skills = Skills(

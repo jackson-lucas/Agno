@@ -11,6 +11,10 @@ class JobManifest(BaseModel):
     agent_ids: List[str] = Field(default_factory=list, description="The IDs or names of the agents to use")
     tool_ids: List[str] = Field(default_factory=list, description="The IDs or names of the tools to attach")
     guardrail_ids: List[str] = Field(default_factory=list, description="The IDs or names of the guardrails to apply")
+    repo_url: Optional[str] = Field(None, description="The URL of the remote git repository to clone")
+    repo_path: Optional[str] = Field(None, description="The local path of the repository to mount or copy")
+    test_commands: List[str] = Field(default_factory=list, description="List of commands to run for testing/validation")
+    lint_commands: List[str] = Field(default_factory=list, description="List of commands to run for linting/validation")
     reasoning: str = Field(..., description="The reasoning for the selection")
 
 class Orchestrator:

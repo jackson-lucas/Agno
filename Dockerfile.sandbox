@@ -6,12 +6,24 @@ ENV PYTHONUNBUFFERED=1 \
 # Install required system packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    git \
+    curl \
+    ca-certificates \
+    gnupg \
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Copy local agno library source
 COPY libs/agno /app/libs/agno
+
+# Configure Git safe directory and identity for the workspace
+RUN git config --global --add safe.directory /app/workspace && \
+    git config --global user.email "ai-agent@daxp.org" && \
+    git config --global user.name "DAXP AI Agent"
 
 # Install dependencies including the local agno
 RUN pip install --no-cache-dir \
@@ -27,7 +39,8 @@ RUN pip install --no-cache-dir \
     sqlalchemy \
     opentelemetry-api \
     opentelemetry-sdk \
-    openinference-instrumentation-agno
+    openinference-instrumentation-agno \
+    PyGithub
 
 # The sandbox_entrypoint.py will be mounted at runtime or copied if we want
 # For simplicity, we assume it'll be mounted to /app/sandbox_entrypoint.py 

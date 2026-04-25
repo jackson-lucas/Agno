@@ -11,6 +11,9 @@ from pathlib import Path
 # We must be able to load from the mounted registry
 from agno.registry.loader import RegistryLoader
 from agno.agent.agent import Agent
+from agno.orchestrator.orchestrator import JobManifest
+from agno.workflow.coding import CodingWorkflow
+from agno.models.google import Gemini
 
 def main():
     if len(sys.argv) < 2:
@@ -19,15 +22,11 @@ def main():
 
     manifest_path = sys.argv[1]
     with open(manifest_path, 'r') as f:
-        manifest = json.load(f)
-
-    task = manifest.get('task')
-    if not task:
-        print("No task specified in manifest!")
-        sys.exit(1)
+        data = json.load(f)
+        manifest = JobManifest(**data)
 
     print(f"--- Sandbox Execution Started ---")
-    print(f"Task: {task}")
+    print(f"Task: {manifest.task}")
     
     # Load registry
     registry_path = Path("/registry")
@@ -39,87 +38,93 @@ def main():
     loader = RegistryLoader(registry_path)
     registry = loader.load_all()
     
-    agent_ids = manifest.get('agent_ids', [])
-    tool_ids = manifest.get('tool_ids', [])
-    guardrail_ids = manifest.get('guardrail_ids', [])
+    # Configure Observability DB URL
+    db_url = "postgresql+psycopg://ai:ai@host.docker.internal:5532/ai"
     
-    # 1. Resolve Agent
-    agent = None
-    if agent_ids:
-        agent_name = agent_ids[0]
-        for a in registry.agents:
-            if getattr(a, "id", a.name) == agent_name or a.name == agent_name:
-                agent = a
-                break
-    
-    if not agent:
-        # Fallback to a default agent if none is specified or found
-        print("No specific agent found or specified. Using default Agent.")
-        from agno.models.google import Gemini
-        agent = Agent(name="DefaultSandboxAgent", model=Gemini(id="gemini-2.5-flash"))
-    else:
-        print(f"Using Agent: {agent.name}")
-
-    # 2. Attach Tools
-    tools_to_add = []
-    for t_id in tool_ids:
-        for t in registry.tools:
-            if getattr(t, "name", None) == t_id:
-                tools_to_add.append(t)
-                print(f"Attached Tool: {t.name}")
-                break
-    
-    if tools_to_add:
-        # Agent.tools might be a list
-        if agent.tools is None:
-            agent.tools = []
-        agent.tools.extend(tools_to_add)
-
-    # 3. Guardrails (Not strictly implemented in Agno core as BaseGuardrail pre_hooks yet)
-    # But we can simulate by calling them manually if they implement check()
-    # For now, we will just print them.
-    guardrails_to_add = []
-    for g_id in guardrail_ids:
-        for g in registry.guardrails:
-            if getattr(g, "name", g.__class__.__name__) == g_id:
-                guardrails_to_add.append(g)
-                print(f"Active Guardrail: {g.name}")
-                break
-    
-    # 4. Configure Observability
-    print("Configuring Observability Bridge (PostgreSQL)...")
-    try:
-        from agno.db.postgres import PostgresDb
-        from agno.tracing import setup_tracing
-        db = PostgresDb(db_url="postgresql+psycopg://ai:ai@host.docker.internal:5532/ai")
-        agent.db = db
-        setup_tracing(db=db)
-        agent.tracing = True
-    except Exception as obs_err:
-        print(f"Warning: Could not connect to Observability DB: {obs_err}")
-
-    print("\nExecuting Task...")
-    
-    # If the user has an OPENAI_API_KEY or GEMINI_API_KEY passed in via docker run -e, 
-    # it will be picked up here.
-    try:
-        response = agent.run(task)
-        output_text = response.content
+    # Determine Execution Mode
+    if manifest.workflow_id == "CodingWorkflow" or "code" in manifest.task.lower():
+        print("Initializing CodingWorkflow...")
+        workflow = CodingWorkflow(
+            workspace_path="/app/workspace"
+        )
         
-        print("\n--- Task Output ---")
-        print(output_text)
-        
-        # Write to outputs directory
-        output_dir = Path("/outputs")
-        if output_dir.exists():
-            out_file = output_dir / "result.txt"
-            with open(out_file, 'w') as f:
-                f.write(output_text)
-            print(f"\nResult saved to {out_file}")
+        # Setup Observability for Workflow
+        try:
+            from agno.db.postgres import PostgresDb
+            db = PostgresDb(db_url=db_url)
+            workflow.db = db
+            # We also need a default agent for the workflow to use for its internal agents
+            workflow.agent = Agent(model=Gemini(id="gemini-2.5-flash"))
+        except Exception as e:
+            print(f"Warning: Observability setup failed: {e}")
             
-    except Exception as e:
-        print(f"\nExecution Error: {e}")
-        sys.exit(1)
+        print("\nExecuting Coding Workflow...")
+        try:
+            output_text = workflow.run(manifest)
+            print("\n--- Workflow Output ---")
+            print(output_text)
+        except Exception as e:
+            print(f"\nWorkflow Error: {e}")
+            sys.exit(1)
+    else:
+        # Standard Agent Execution
+        agent = None
+        if manifest.agent_ids:
+            agent_name = manifest.agent_ids[0]
+            for a in registry.agents:
+                if getattr(a, "id", a.name) == agent_name or a.name == agent_name:
+                    agent = a
+                    break
+        
+        if not agent:
+            print("Using default Agent.")
+            agent = Agent(name="DefaultSandboxAgent", model=Gemini(id="gemini-2.5-flash"))
+        else:
+            print(f"Using Agent: {agent.name}")
+
+        # Attach Tools
+        tools_to_add = []
+        for t_id in manifest.tool_ids:
+            for t in registry.tools:
+                if getattr(t, "name", None) == t_id:
+                    tools_to_add.append(t)
+                    print(f"Attached Tool: {t.name}")
+                    break
+        
+        if tools_to_add:
+            if agent.tools is None:
+                agent.tools = []
+            agent.tools.extend(tools_to_add)
+
+        # Configure Observability
+        print("Configuring Observability Bridge...")
+        try:
+            from agno.db.postgres import PostgresDb
+            from agno.tracing import setup_tracing
+            db = PostgresDb(db_url=db_url)
+            agent.db = db
+            setup_tracing(db=db)
+            agent.tracing = True
+        except Exception as obs_err:
+            print(f"Warning: Could not connect to Observability DB: {obs_err}")
+
+        print("\nExecuting Task...")
+        try:
+            response = agent.run(manifest.task)
+            output_text = response.content
+            print("\n--- Task Output ---")
+            print(output_text)
+        except Exception as e:
+            print(f"\nExecution Error: {e}")
+            sys.exit(1)
+            
+    # Finalize
+    output_dir = Path("/outputs")
+    if output_dir.exists():
+        out_file = output_dir / "result.txt"
+        with open(out_file, 'w') as f:
+            f.write(output_text)
+        print(f"\nResult saved to {out_file}")
         
     print("--- Sandbox Execution Completed ---")
 

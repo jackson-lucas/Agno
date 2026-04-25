@@ -15,10 +15,12 @@ class DockerRunner:
         self.image_name = "agno-sandbox"
         self.tmp_dir = self.repo_root / "tmp"
         self.outputs_dir = self.tmp_dir / "sandbox_outputs"
+        self.workspace_dir = self.outputs_dir / "workspace"
         
         # Ensure directories exist
         self.tmp_dir.mkdir(exist_ok=True)
         self.outputs_dir.mkdir(exist_ok=True)
+        self.workspace_dir.mkdir(exist_ok=True)
 
     def _build_image(self):
         log_info(f"Ensuring Docker image '{self.image_name}' is built...")
@@ -51,13 +53,51 @@ class DockerRunner:
         if log_callback:
             log_callback(log_msg)
         
-        # Pass the API keys from the host environment to the container
+        # Pass the API keys and Git credentials from the host environment to the container
+        # Try to load from .env if not in environment
+        try:
+            from dotenv import load_dotenv
+            load_dotenv(dotenv_path=self.repo_root / ".env")
+        except ImportError:
+            pass
+
         env_args = []
-        for key in ["OPENAI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY"]:
+        for key in ["OPENAI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY", "GITHUB_TOKEN"]:
             val = os.environ.get(key)
             if val:
                 env_args.extend(["-e", f"{key}={val}"])
                 
+        # Handle Repository Ingestion
+        repo_mount_args = []
+        if manifest.repo_url:
+            log_info(f"Cloning remote repository: {manifest.repo_url}")
+            try:
+                # Clear workspace before cloning
+                if self.workspace_dir.exists():
+                    import shutil
+                    shutil.rmtree(self.workspace_dir)
+                self.workspace_dir.mkdir(exist_ok=True)
+                
+                subprocess.run(
+                    ["git", "clone", manifest.repo_url, "."],
+                    cwd=str(self.workspace_dir),
+                    check=True,
+                    capture_output=True
+                )
+            except subprocess.CalledProcessError as e:
+                log_error(f"Failed to clone repository: {e.stderr.decode()}")
+                raise RuntimeError(f"Git clone failed: {e.stderr.decode()}")
+        elif manifest.repo_path:
+            # Mount local path
+            local_path = Path(manifest.repo_path).resolve()
+            if not local_path.exists():
+                raise RuntimeError(f"Local repo path does not exist: {local_path}")
+            log_info(f"Using local repository: {local_path}")
+            repo_mount_args = ["-v", f"{local_path}:/app/workspace:rw"]
+        else:
+            # If no repo provided, just mount the empty workspace_dir
+            repo_mount_args = ["-v", f"{self.workspace_dir}:/app/workspace:rw"]
+
         docker_cmd = [
             "docker", "run", "--rm",
             "--add-host=host.docker.internal:host-gateway",
@@ -65,9 +105,9 @@ class DockerRunner:
             "-v", f"{self.repo_root / 'registry'}:/registry:ro",
             # Mount the manifest as read-only
             "-v", f"{manifest_path}:/app/manifest.json:ro",
-            # Mount the output directory as read-write
+            # Mount the output directory
             "-v", f"{self.outputs_dir}:/outputs:rw",
-        ] + env_args + [
+        ] + repo_mount_args + env_args + [
             self.image_name,
             "/app/manifest.json"
         ]

@@ -101,6 +101,8 @@ class DockerRunner:
         docker_cmd = [
             "docker", "run", "--rm",
             "--add-host=host.docker.internal:host-gateway",
+            # Mount the registry as read-only
+            "-v", f"{self.repo_root / 'registry'}:/registry:ro",
             # Mount the manifest as read-only
             "-v", f"{manifest_path}:/app/manifest.json:ro",
             # Mount the output directory

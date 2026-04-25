@@ -29,8 +29,13 @@ def main():
     print(f"Task: {manifest.task}")
     
     # Load registry
+    registry_path = Path("/registry")
+    if not registry_path.exists():
+        print("Error: /registry not mounted into the container.")
+        sys.exit(1)
+        
     print("Loading registry components...")
-    loader = RegistryLoader()
+    loader = RegistryLoader(registry_path)
     registry = loader.load_all()
     
     # Configure Observability DB URL

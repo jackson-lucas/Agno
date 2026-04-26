@@ -12,6 +12,9 @@
   Build, run, and manage agentic software at scale.
 </p>
 
+> [!NOTE]
+> **Orchestration Fork**: This version includes a **Semantic Orchestration Layer**, **Docker Sandboxing**, and **PostgreSQL Observability**. See [README_FORK.md](README_FORK.md) for details.
+
 <div align="center">
   <a href="https://docs.agno.com">Docs</a>
   <span>&nbsp;•&nbsp;</span>
@@ -33,6 +36,9 @@ Agno is the runtime for agentic software. Build agents, teams, and workflows. Ru
 | **Control Plane** | Test, monitor, and manage your system using the [AgentOS UI](https://os.agno.com). |
 
 ## Quick Start
+
+> [!IMPORTANT]
+> **Docker Daemon Dependency**: If you are using the local Docker Sandbox (Phase 3+), ensure that the Docker daemon is installed and running on your host machine, and that your user has permissions to interact with it.
 
 Build a stateful, tool-using agent and serve it as a production API in ~20 lines.
 

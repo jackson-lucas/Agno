@@ -62,9 +62,19 @@ echo -e "    ${DIM}Installing agno[demo]...${NC}"
 echo -e "    ${DIM}> VIRTUAL_ENV=${VENV_DIR} uv pip install -e ${AGNO_DIR}[demo]${NC}"
 VIRTUAL_ENV=${VENV_DIR} uv pip install -e ${AGNO_DIR}[demo] --quiet
 
-# Copy activation command to clipboard
+# Copy activation command to clipboard if a tool is available
 ACTIVATE_CMD="source .venvs/demo/bin/activate"
-echo -n "${ACTIVATE_CMD}" | pbcopy
+COPIED=false
+if command -v pbcopy &> /dev/null; then
+    echo -n "${ACTIVATE_CMD}" | pbcopy
+    COPIED=true
+elif command -v xclip &> /dev/null; then
+    echo -n "${ACTIVATE_CMD}" | xclip -selection clipboard
+    COPIED=true
+elif command -v xsel &> /dev/null; then
+    echo -n "${ACTIVATE_CMD}" | xsel --clipboard --input
+    COPIED=true
+fi
 
 echo ""
 echo -e "    ${BOLD}Done.${NC}"
@@ -72,5 +82,7 @@ echo ""
 echo -e "    ${DIM}Activate:${NC}  ${ACTIVATE_CMD}"
 echo -e "    ${DIM}Run Demo:${NC}  python cookbook/01_demo/run.py"
 echo ""
-echo -e "    ${DIM}(Activation command copied to clipboard. Just paste and hit enter.)${NC}"
-echo ""
+if [ "$COPIED" = true ]; then
+    echo -e "    ${DIM}(Activation command copied to clipboard. Just paste and hit enter.)${NC}"
+    echo ""
+fi

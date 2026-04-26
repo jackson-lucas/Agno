@@ -15,7 +15,9 @@ from agno.vectordb.base import VectorDb
 
 if TYPE_CHECKING:
     from agno.agent import Agent
+    from agno.guardrails.base import BaseGuardrail
     from agno.team import Team
+    from agno.workflow.workflow import Workflow
 
 
 @dataclass
@@ -28,6 +30,7 @@ class Registry:
     name: Optional[str] = None
     description: Optional[str] = None
     id: str = field(default_factory=lambda: str(uuid4()))
+    vector_db: Optional[VectorDb] = None
     tools: List[Any] = field(default_factory=list)
     models: List[Model] = field(default_factory=list)
     dbs: List[BaseDb] = field(default_factory=list)
@@ -37,6 +40,8 @@ class Registry:
     # Code-defined agents and teams (for workflow rehydration)
     agents: List[Agent] = field(default_factory=list)
     teams: List[Team] = field(default_factory=list)
+    workflows: List[Workflow] = field(default_factory=list)
+    guardrails: List[BaseGuardrail] = field(default_factory=list)
 
     @cached_property
     def _entrypoint_lookup(self) -> Dict[str, Callable]:
@@ -91,6 +96,18 @@ class Registry:
         """Get a team by id from the registry."""
         if self.teams:
             return next((t for t in self.teams if getattr(t, "id", None) == team_id), None)
+        return None
+
+    def get_workflow(self, workflow_id: str) -> Optional[Workflow]:
+        """Get a workflow by id from the registry."""
+        if self.workflows:
+            return next((w for w in self.workflows if getattr(w, "id", None) == workflow_id), None)
+        return None
+
+    def get_guardrail(self, name: str) -> Optional[BaseGuardrail]:
+        """Get a guardrail by name from the registry."""
+        if self.guardrails:
+            return next((g for g in self.guardrails if getattr(g, "name", None) == name), None)
         return None
 
     def get_agent_ids(self) -> Set[str]:

@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #272822;
+  --color-foreground: #F8F8F2;
+  
+  --color-monokai-bg: #272822;
+  --color-monokai-fg: #F8F8F2;
+  --color-monokai-comment: #75715E;
+  --color-monokai-yellow: #E6DB74;
+  --color-monokai-pink: #F92672;
+  --color-monokai-purple: #AE81FF;
+  --color-monokai-green: #A6E22E;
+  --color-monokai-blue: #66D9EF;
+  --color-monokai-orange: #FD971F;
+}
+
+:root {
+  --background: #272822;
+  --foreground: #F8F8F2;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Custom Scrollbar for Monokai */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1e1f1c;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #49483e;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #75715E;
+}

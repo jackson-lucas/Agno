@@ -42,6 +42,7 @@ class Registry:
     teams: List[Team] = field(default_factory=list)
     workflows: List[Workflow] = field(default_factory=list)
     guardrails: List[BaseGuardrail] = field(default_factory=list)
+    skills: List[Any] = field(default_factory=list)
 
     @cached_property
     def _entrypoint_lookup(self) -> Dict[str, Callable]:

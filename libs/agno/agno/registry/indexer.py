@@ -1,20 +1,23 @@
-from typing import Optional, Union, Any
 from pathlib import Path
-from agno.registry.registry import Registry
-from agno.vectordb.chroma import ChromaDb
-from agno.knowledge.document.base import Document
+from typing import Any, Optional, Union
+
 from agno.agent.agent import Agent
-from agno.tools.toolkit import Toolkit
-from agno.tools.function import Function
-from agno.workflow.workflow import Workflow
 from agno.guardrails.base import BaseGuardrail
-from agno.utils.log import log_info, log_error
+from agno.knowledge.document.base import Document
+from agno.registry.registry import Registry
+from agno.tools.function import Function
+from agno.tools.toolkit import Toolkit
+from agno.utils.log import log_error, log_info
+from agno.vectordb.chroma import ChromaDb
+from agno.workflow.workflow import Workflow
+
 
 class ComponentIndexer:
     """
     ComponentIndexer creates semantic embeddings for components within a Registry
     and stores them in a Vector Database (ChromaDB) for semantic retrieval.
     """
+
     def __init__(self, vector_db: ChromaDb):
         self.vector_db = vector_db
         # Ensure collection is created
@@ -33,25 +36,35 @@ class ComponentIndexer:
         # 1. Tools
         for tool in registry.tools:
             doc = self._create_document_for_tool(tool)
-            if doc: documents.append(doc)
+            if doc:
+                documents.append(doc)
 
         # 2. Agents
         for agent in registry.agents:
             doc = self._create_document_for_agent(agent)
-            if doc: documents.append(doc)
+            if doc:
+                documents.append(doc)
 
         # 3. Workflows
         for workflow in registry.workflows:
             doc = self._create_document_for_workflow(workflow)
-            if doc: documents.append(doc)
+            if doc:
+                documents.append(doc)
 
         # 4. Guardrails
         for guardrail in registry.guardrails:
             doc = self._create_document_for_guardrail(guardrail)
-            if doc: documents.append(doc)
+            if doc:
+                documents.append(doc)
+
+        # 5. Skills
+        for skill in registry.skills:
+            doc = self._create_document_for_skill(skill)
+            if doc:
+                documents.append(doc)
 
         if documents:
-            # Upsert into vector DB. 
+            # Upsert into vector DB.
             self.vector_db.upsert(content_hash="registry_index", documents=documents)
             log_info(f"Indexed {len(documents)} components successfully.")
         else:
@@ -67,22 +80,14 @@ class ComponentIndexer:
                 for func_name, func in tool.functions.items():
                     content += f"- {func_name}: {func.description}\n"
                 return Document(
-                    id=tool.name,
-                    name=tool.name,
-                    content=content,
-                    meta_data={"type": "tool", "name": tool.name}
+                    id=tool.name, name=tool.name, content=content, meta_data={"type": "tool", "name": tool.name}
                 )
             elif getattr(tool, "name", None):
                 name = tool.name
                 content = f"Tool: {name}\n"
                 if getattr(tool, "description", None):
                     content += f"Description: {tool.description}\n"
-                return Document(
-                    id=name,
-                    name=name,
-                    content=content,
-                    meta_data={"type": "tool", "name": name}
-                )
+                return Document(id=name, name=name, content=content, meta_data={"type": "tool", "name": name})
         except Exception as e:
             log_error(f"Failed to create document for tool {tool}: {e}")
         return None
@@ -93,14 +98,16 @@ class ComponentIndexer:
             if agent.description:
                 content += f"Description: {agent.description}\n"
             if agent.instructions:
-                instructions_str = agent.instructions if isinstance(agent.instructions, str) else " ".join(agent.instructions)
+                instructions_str = (
+                    agent.instructions if isinstance(agent.instructions, str) else " ".join(agent.instructions)
+                )
                 content += f"Instructions: {instructions_str}\n"
             agent_id = getattr(agent, "id", None) or agent.name
             return Document(
                 id=agent_id,
                 name=agent.name,
                 content=content,
-                meta_data={"type": "agent", "name": agent.name, "id": agent_id}
+                meta_data={"type": "agent", "name": agent.name, "id": agent_id},
             )
         except Exception as e:
             log_error(f"Failed to create document for agent {agent.name}: {e}")
@@ -118,7 +125,7 @@ class ComponentIndexer:
                 id=workflow_id,
                 name=name,
                 content=content,
-                meta_data={"type": "workflow", "name": name, "id": workflow_id}
+                meta_data={"type": "workflow", "name": name, "id": workflow_id},
             )
         except Exception as e:
             log_error(f"Failed to create document for workflow: {e}")
@@ -131,12 +138,21 @@ class ComponentIndexer:
             content = f"Guardrail: {name}\n"
             if description:
                 content += f"Description: {description}\n"
-            return Document(
-                id=name,
-                name=name,
-                content=content,
-                meta_data={"type": "guardrail", "name": name}
-            )
+            return Document(id=name, name=name, content=content, meta_data={"type": "guardrail", "name": name})
         except Exception as e:
             log_error(f"Failed to create document for guardrail: {e}")
+        return None
+
+    def _create_document_for_skill(self, skill: Any) -> Optional[Document]:
+        try:
+            name = getattr(skill, "name", "unknown")
+            description = getattr(skill, "description", "")
+            content = f"Skill: {name}\n"
+            if description:
+                content += f"Description: {description}\n"
+            if getattr(skill, "instructions", None):
+                content += f"Instructions: {skill.instructions}\n"
+            return Document(id=name, name=name, content=content, meta_data={"type": "skill", "name": name})
+        except Exception as e:
+            log_error(f"Failed to create document for skill: {e}")
         return None

@@ -7,10 +7,10 @@ from agno.agent.agent import Agent
 from agno.guardrails.base import BaseGuardrail
 from agno.registry.registry import Registry
 from agno.team.team import Team
-from agno.tools.toolkit import Toolkit
 from agno.tools.function import Function
-from agno.workflow.workflow import Workflow
+from agno.tools.toolkit import Toolkit
 from agno.utils.log import log_debug, log_error
+from agno.workflow.workflow import Workflow
 
 
 class RegistryLoader:
@@ -29,15 +29,18 @@ class RegistryLoader:
 
         # Load tools
         registry.tools.extend(self.load_components(self.root_path / "tools", (Toolkit, Function)))
-        
+
         # Load agents
         registry.agents.extend(self.load_components(self.root_path / "agents", Agent))
-        
+
         # Load workflows
         registry.workflows.extend(self.load_components(self.root_path / "workflows", Workflow))
-        
+
         # Load guardrails
         registry.guardrails.extend(self.load_components(self.root_path / "guardrails", BaseGuardrail))
+
+        # Load skills
+        registry.skills.extend(self.load_components(self.root_path / "skills", Skill))
 
         return registry
 

@@ -3,6 +3,7 @@
 # This starts the Agno Observability Database
 # It is used by the Docker Sandbox to stream telemetry and logs.
 
+docker rm -f agno_observability 2>/dev/null || true
 docker run -d \
   -e POSTGRES_DB=ai \
   -e POSTGRES_USER=ai \

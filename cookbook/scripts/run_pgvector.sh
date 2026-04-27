@@ -1,3 +1,4 @@
+docker rm -f pgvector 2>/dev/null || true
 docker run -d \
   -e POSTGRES_DB=ai \
   -e POSTGRES_USER=ai \

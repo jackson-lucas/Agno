@@ -1,11 +1,13 @@
 from pathlib import Path
+
 from agno.agent import Agent
 from agno.models.google import Gemini
-from agno.skills import Skills, LocalSkills
+from agno.skills import LocalSkills, Skills
 
 # Load environment variables from .env
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
@@ -17,11 +19,7 @@ except ImportError:
 skills_path = Path.cwd() / "skills"
 
 # Initialize the Skills object with the LocalSkills loader
-agent_skills = Skills(
-    loaders=[
-        LocalSkills(path=str(skills_path))
-    ]
-)
+agent_skills = Skills(loaders=[LocalSkills(path=str(skills_path))])
 
 # ---------------------------------------------------------------------------
 # Define the Playable Agent
@@ -49,7 +47,7 @@ if __name__ == "__main__":
     JOIN orders o ON u.id = o.user_id
     WHERE u.id = 123;
     """
-    
+
     # Example EXPLAIN plan
     explain_plan = """
     Nested Loop  (cost=4.63..1035.79 rows=1 width=113) (actual time=0.045..0.048 rows=1 loops=1)

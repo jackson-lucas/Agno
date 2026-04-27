@@ -14,9 +14,10 @@ from agents.scout import scout
 from agents.seek import seek
 from agno.os import AgentOS
 from db import get_postgres_db
-from registry import registry
 from teams.research import research_team
 from workflows.daily_brief import daily_brief_workflow
+
+from registry import registry
 
 config_path = str(Path(__file__).parent.joinpath("config.yaml"))
 

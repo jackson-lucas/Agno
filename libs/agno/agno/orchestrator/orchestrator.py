@@ -1,9 +1,11 @@
 from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 from agno.agent.agent import Agent
 from agno.registry.registry import Registry
 from agno.utils.log import log_info
+
 
 class JobManifest(BaseModel):
     task: str = Field(..., description="The original task or prompt requested by the user")
@@ -17,11 +19,13 @@ class JobManifest(BaseModel):
     lint_commands: List[str] = Field(default_factory=list, description="List of commands to run for linting/validation")
     reasoning: str = Field(..., description="The reasoning for the selection")
 
+
 class Orchestrator:
     """
     The Orchestrator agent uses semantic search over the Registry to select
     the appropriate components for a given task, producing a JobManifest.
     """
+
     def __init__(self, registry: Registry, model=None):
         self.registry = registry
 
@@ -37,12 +41,12 @@ class Orchestrator:
                 "You have been provided with a list of available components from the registry.",
                 "1. Analyze the user's request and the available components.",
                 "2. Select the best combination of components to fulfill the request.",
-                "3. Output a JobManifest with your selection."
+                "3. Output a JobManifest with your selection.",
             ],
             output_schema=JobManifest,
-            **kwargs
+            **kwargs,
         )
-        
+
     def plan(self, prompt: str) -> JobManifest:
         """
         Generate a JobManifest for the given prompt.
@@ -54,8 +58,8 @@ class Orchestrator:
             if results:
                 for doc in results:
                     metadata = doc.meta_data or {}
-                    comp_type = metadata.get('type', 'unknown')
-                    comp_id = metadata.get('id', 'unknown')
+                    comp_type = metadata.get("type", "unknown")
+                    comp_id = metadata.get("id", "unknown")
                     registry_context += f"--- {comp_type.upper()} ID: {comp_id} ---\n{doc.content}\n\n"
             else:
                 registry_context += "No matching components found.\n"

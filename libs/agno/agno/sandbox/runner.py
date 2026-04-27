@@ -1,22 +1,25 @@
-import os
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Optional
+
 from agno.orchestrator.orchestrator import JobManifest
-from agno.utils.log import log_info, log_error
+from agno.utils.log import log_error, log_info
+
 
 class DockerRunner:
     """
     Executes a JobManifest inside an isolated Docker container.
     """
+
     def __init__(self, repo_root: Path):
         self.repo_root = repo_root
         self.image_name = "agno-sandbox"
         self.tmp_dir = self.repo_root / "tmp"
         self.outputs_dir = self.tmp_dir / "sandbox_outputs"
         self.workspace_dir = self.outputs_dir / "workspace"
-        
+
         # Ensure directories exist
         self.tmp_dir.mkdir(exist_ok=True)
         self.outputs_dir.mkdir(exist_ok=True)
@@ -43,20 +46,21 @@ class DockerRunner:
         Returns the path to the output directory.
         """
         self._build_image()
-        
+
         manifest_path = self.tmp_dir / "sandbox_manifest.json"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             f.write(manifest.model_dump_json(indent=2))
-            
+
         log_msg = "Starting Docker sandbox execution..."
         log_info(log_msg)
         if log_callback:
             log_callback(log_msg)
-        
+
         # Pass the API keys and Git credentials from the host environment to the container
         # Try to load from .env if not in environment
         try:
             from dotenv import load_dotenv
+
             load_dotenv(dotenv_path=self.repo_root / ".env")
         except ImportError:
             pass
@@ -66,7 +70,7 @@ class DockerRunner:
             val = os.environ.get(key)
             if val:
                 env_args.extend(["-e", f"{key}={val}"])
-                
+
         # Handle Repository Ingestion
         repo_mount_args = []
         if manifest.repo_url:
@@ -75,14 +79,15 @@ class DockerRunner:
                 # Clear workspace before cloning
                 if self.workspace_dir.exists():
                     import shutil
+
                     shutil.rmtree(self.workspace_dir)
                 self.workspace_dir.mkdir(exist_ok=True)
-                
+
                 subprocess.run(
                     ["git", "clone", manifest.repo_url, "."],
                     cwd=str(self.workspace_dir),
                     check=True,
-                    capture_output=True
+                    capture_output=True,
                 )
             except subprocess.CalledProcessError as e:
                 log_error(f"Failed to clone repository: {e.stderr.decode()}")
@@ -98,20 +103,27 @@ class DockerRunner:
             # If no repo provided, just mount the empty workspace_dir
             repo_mount_args = ["-v", f"{self.workspace_dir}:/app/workspace:rw"]
 
-        docker_cmd = [
-            "docker", "run", "--rm",
-            "--add-host=host.docker.internal:host-gateway",
-            # Mount the registry as read-only
-            "-v", f"{self.repo_root / 'registry'}:/registry:ro",
-            # Mount the manifest as read-only
-            "-v", f"{manifest_path}:/app/manifest.json:ro",
-            # Mount the output directory
-            "-v", f"{self.outputs_dir}:/outputs:rw",
-        ] + repo_mount_args + env_args + [
-            self.image_name,
-            "/app/manifest.json"
-        ]
-        
+        docker_cmd = (
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--add-host=host.docker.internal:host-gateway",
+                # Mount the registry as read-only
+                "-v",
+                f"{self.repo_root / 'registry'}:/registry:ro",
+                # Mount the manifest as read-only
+                "-v",
+                f"{manifest_path}:/app/manifest.json:ro",
+                # Mount the output directory
+                "-v",
+                f"{self.outputs_dir}:/outputs:rw",
+            ]
+            + repo_mount_args
+            + env_args
+            + [self.image_name, "/app/manifest.json"]
+        )
+
         try:
             # Use Popen to stream logs
             process = subprocess.Popen(
@@ -123,15 +135,15 @@ class DockerRunner:
                 bufsize=1,
                 universal_newlines=True,
             )
-            
+
             if process.stdout:
                 for line in process.stdout:
                     clean_line = line.strip()
                     if clean_line:
-                        print(clean_line) # Print to host console
+                        print(clean_line)  # Print to host console
                         if log_callback:
                             log_callback(clean_line)
-            
+
             process.wait()
             if process.returncode == 0:
                 log_info(f"Execution completed. Outputs saved to {self.outputs_dir}")

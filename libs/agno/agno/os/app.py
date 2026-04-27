@@ -1473,16 +1473,14 @@ class AgentOS:
         from rich.console import Console, Group
 
         public_endpoint = f"http://{host}:{port}"
-        
+
         panel_group = [
             Align.center(f"\n🚀 [bold]AgentOS Local Dashboard[/bold] is live at:"),
             Align.center(f"[bold cyan]{public_endpoint}[/bold cyan]"),
             Align.center(f"\n[dim]Experience your agents, teams and workflows in real-time.[/dim]"),
         ]
         if self.authorization:
-            panel_group.append(
-                Align.center("\n[bold chartreuse3]🔒 JWT Authorization Enabled[/bold chartreuse3]")
-            )
+            panel_group.append(Align.center("\n[bold chartreuse3]🔒 JWT Authorization Enabled[/bold chartreuse3]"))
         elif bool(self.settings.os_security_key):
             panel_group.append(Align.center("\n[bold chartreuse3]🔒 Security Key Enabled[/bold chartreuse3]"))
 

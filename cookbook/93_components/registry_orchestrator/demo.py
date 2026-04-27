@@ -1,18 +1,20 @@
 import os
 import sys
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Ensure we can import from agno if this is run locally
 repo_root = Path(__file__).parent.parent.parent.parent.resolve()
 sys.path.append(str(repo_root / "libs" / "agno"))
 
-from agno.registry.loader import RegistryLoader
-from agno.registry.indexer import ComponentIndexer
-from agno.vectordb.chroma import ChromaDb
-from agno.orchestrator.orchestrator import Orchestrator
-from agno.models.google import Gemini
 from agno.knowledge.embedder.google import GeminiEmbedder
+from agno.models.google import Gemini
+from agno.orchestrator.orchestrator import Orchestrator
+from agno.registry.indexer import ComponentIndexer
+from agno.registry.loader import RegistryLoader
+from agno.vectordb.chroma import ChromaDb
+
 
 def main():
     load_dotenv()
@@ -37,7 +39,7 @@ def main():
         embedder=GeminiEmbedder(),
     )
     registry.vector_db = vector_db
-    
+
     print("Indexing components into ChromaDB (this may take a moment)...")
     indexer = ComponentIndexer(vector_db)
     indexer.index_registry(registry)
@@ -45,18 +47,18 @@ def main():
     # 3. Initialize Orchestrator
     orchestrator = Orchestrator(registry, model=Gemini(id="gemini-2.5-flash"))
     print("\nOrchestrator initialized and ready.")
-    
+
     print("\n--- Agno Semantic Orchestrator ---")
     print("Type a prompt to generate a Job Manifest. Type 'exit' or 'quit' to stop.")
-    
+
     while True:
         try:
             user_input = input("\nPrompt: ")
-            if user_input.lower() in ['exit', 'quit']:
+            if user_input.lower() in ["exit", "quit"]:
                 break
             if not user_input.strip():
                 continue
-            
+
             print("Analyzing request and searching registry...")
             manifest = orchestrator.plan(user_input)
             print("\n--- Job Manifest ---")
@@ -65,6 +67,7 @@ def main():
             break
         except Exception as e:
             print(f"Error during orchestration: {e}")
+
 
 if __name__ == "__main__":
     main()

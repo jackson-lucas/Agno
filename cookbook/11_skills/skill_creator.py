@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from agno.agent import Agent
 from agno.models.google import Gemini
 from agno.tools.bravesearch import BraveSearchTools
@@ -8,6 +9,7 @@ from agno.workflow import Step, Workflow
 # Load environment variables from .env
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
@@ -24,6 +26,7 @@ SKILLS_DIR = ROOT_DIR / "skills"
 # We use BraveSearch for research as requested
 # Handle both BRAVE_API_KEY and BRAVE_SEARCH_API_KEY
 import os
+
 brave_key = os.getenv("BRAVE_API_KEY") or os.getenv("BRAVE_SEARCH_API_KEY")
 search_tools = BraveSearchTools(api_key=brave_key)
 
@@ -114,7 +117,7 @@ skill_creator = Workflow(
     description="Automated pipeline to research and generate high-quality Agno Skills",
     steps=[
         research_step,
-        #delay_step,
+        # delay_step,
         developer_step,
     ],
 )
@@ -124,7 +127,7 @@ skill_creator = Workflow(
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     import asyncio
-    
+
     # Example: Create a SQL Optimizer skill
     skill_creator.print_response(
         "Create a 'SQL Optimizer' skill. It should help agents analyze slow queries, "

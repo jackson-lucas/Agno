@@ -1,13 +1,16 @@
-from typing import Optional, List
-from agno.tools.toolkit import Toolkit
-from agno.utils.log import log_info, log_error
 import subprocess
+from typing import List, Optional
+
+from agno.tools.toolkit import Toolkit
+from agno.utils.log import log_error, log_info
+
 
 class GitToolkit(Toolkit):
     """
     GitToolkit provides tools for interacting with a git repository.
     All commands are executed within the /app/workspace directory.
     """
+
     def __init__(self, workspace_path: str = "/app/workspace"):
         super().__init__(name="git_toolkit")
         self.workspace_path = workspace_path
@@ -19,13 +22,7 @@ class GitToolkit(Toolkit):
 
     def _run_git(self, args: List[str]) -> str:
         try:
-            result = subprocess.run(
-                ["git"] + args,
-                cwd=self.workspace_path,
-                check=True,
-                capture_output=True,
-                text=True
-            )
+            result = subprocess.run(["git"] + args, cwd=self.workspace_path, check=True, capture_output=True, text=True)
             return result.stdout
         except subprocess.CalledProcessError as e:
             log_error(f"Git command failed: {e.stderr}")
